@@ -22,6 +22,9 @@ def index():
 
 @app.route("/datasets", methods = ['GET', 'POST'])
 def datasets():
+	if not current_user.is_authenticated:
+		return redirect(url_for('no_access'))
+
 	datasets = Dataset.query.filter(Dataset.id != 50).all()
 	model = {
 		'title': 'Datasets',
@@ -149,3 +152,7 @@ def register():
 	return render_template('registration.html', model = model)
 
 ##### end of authorization
+
+@app.route('/no_access')
+def no_access():
+	return 'No access'
