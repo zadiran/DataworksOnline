@@ -57,14 +57,11 @@ def dataset(dsId):
 	if not current_user.is_authenticated:
 		return redirect(url_for('no_access'))
 
-	ds = Dataset.query.get(dsId);
+	ds = Dataset.query.get(dsId)
 	
-	if ds.user.id is not current_user.id:
+	if ds is None or ds is not None and ds.user.id is not current_user.id:
 		return redirect(url_for('no_access'))
 	
-	print(str(ds))
-	if(ds is None):
-		return 'aaaa'
 	model = {
 		'title' : 'Dataset' + str(dsId),
 		'filename' : ds.filename 
