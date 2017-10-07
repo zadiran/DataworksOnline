@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "_helpers.html" import render_field, render_errors %}
+
+{% block content %}
+<div class="center-block panel panel-default" style="width:30%; padding:1em;">
+    <h1 class="text-center">Sign Up</h1>
+    <form action="" method="post" name="login">
+        {{model.form.hidden_tag()}}
+
+        {{ render_field('Login', model.form.login) }}
+        
+        {{ render_field('E-Mail', model.form.email) }}
+        
+        {{ render_field('Password', model.form.password) }}
+        
+        {{ render_field('Passwod confirmation', model.form.password_confirmation) }}
+
+        <div>
+            <input type="submit" value="Sign Up" class="btn btn-primary center-block">
+        </div>
+    </form>
+</div>
+{% endblock %}

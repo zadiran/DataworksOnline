@@ -1,0 +1,20 @@
+{% macro render_errors(field) %}
+    {% if field.errors %}
+        <div class="alert alert-danger" style="margin-top:0.5em; padding:1em">
+            <ul class="errors" >
+                {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro render_field(label, field) %}
+    <div class="form-group">
+        <label for="{{ field.id }}">{{ label }}</label>
+        {{ field(class="form-control") }}
+        {{ render_errors(field) }}
+    </div>
+{% endmacro %}

@@ -1,40 +1,21 @@
+import os
+
 from flask import Flask
-from flask import render_template
+from flask_sqlalchemy import SQLAlchemy
+from config import Config
+from flask_login import LoginManager
+
 app = Flask(__name__)
-app.config.from_object('config')
+app.debug = True
+app.config.from_object(Config())
+app.config['BASEDIR'] = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-@app.route('/')
-@app.route('/index')
-def hello():
-	model = {
-		'title' : 'Home'
-	}
-	return render_template('index.html', model = model)
+db = SQLAlchemy(app)
+lm = LoginManager(app)
 
-@app.route("/datasets")
-def files():
-	model = {
-		'title' : 'Datasets'
-	}
-	return render_template('datasets.html', model = model)
 
-@app.route('/dataset')
-def file():
-	model = {
-		'title': 'Dataset'
-	}
-	return render_template('dataset.html', model = model)
+directory = os.path.join(app.config['BASEDIR'], 'files')
+if not os.path.exists(directory):
+   os.mkdir(directory)
 
-@app.route('/about')
-def about():
-	model = {
-		'title' : 'About us'
-	}
-	return render_template('base.html', model = model)
-
-@app.route('/contacts')
-def contacts():
-	model = {
-		'title' : 'Contacts'
-	}
-	return render_template('base.html', model = model)

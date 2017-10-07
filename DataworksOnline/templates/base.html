@@ -15,13 +15,38 @@
 					<a class="navbar-brand" href="/">Dataworks Online</a>
 				</div>
 				<ul class="nav navbar-nav">
-					<li><a href="/">Home</a></li>
-					<li><a href="/datasets">Datasets</a></li>
+					<li><a href="{{ url_for('index') }}">Home</a></li>
+					{% if current_user.is_authenticated %}
+						<li><a href="{{ url_for('datasets') }}">Datasets</a></li>
+					{% endif %}
 					<li><a href="/about">About us</a></li>
 					<li><a href="/contacts">Contacts</a></li>
+					
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					{% if g.user.is_authenticated %}
+						<li><a href="#">{{ g.user.username }}</a></li>
+						<li><a href="{{ url_for('logout') }}">Logout</a></li>
+					{% else%}
+						<li><a href="{{ url_for('login')}}">Sign in</a></li>
+						<li><a href="{{ url_for('register')}}">Sign up</a></li>
+					{% endif %}
 				</ul>
 			</div>
 		</nav>
+		
+		{% with messages = get_flashed_messages() %}
+			{% if messages %}
+				<div class="alert alert-danger">
+					<ul>
+					{% for message in messages %}
+						<li>{{ message }} </li>
+					{% endfor %}
+					</ul>
+				</div>
+			{% endif %}
+		{% endwith %}
+		
 		<div style="padding:15px">
 			{% block content %} 
 			{% endblock %}
