@@ -59,7 +59,7 @@ def dataset(dsId):
 
 	ds = Dataset.query.get(dsId);
 	
-	if ds.user_id is not current_user.id:
+	if ds.user.id is not current_user.id:
 		return redirect(url_for('no_access'))
 	
 	print(str(ds))
@@ -162,4 +162,7 @@ def register():
 
 @app.route('/no_access')
 def no_access():
-	return 'No access'
+	model = {
+		'title' : 'Access denied'
+	}
+	return render_template('no_access.html', model = model)

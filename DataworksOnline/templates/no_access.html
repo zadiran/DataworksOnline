@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Access denied</h1>
+
+<p>You can not access this page.</p>
+<ul>
+    <li>If you are not logged in, try to <a href="{{ url_for('login') }}">log in</a>, 
+        or <a href="{{ url_for('register') }}">sign up</a>, if you do not have an account</li>
+    <li>If you logged in and still see this message, you do not have permissions 
+        to view page, you requested</li>
+</ul>
+
+{% endblock %}
