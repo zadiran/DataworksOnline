@@ -25,7 +25,7 @@ def datasets():
 	if not current_user.is_authenticated:
 		return redirect(url_for('no_access'))
 
-	datasets = Dataset.query.filter(Dataset.id != 50).all()
+	datasets = Dataset.query.filter(Dataset.user_id == current_user.id).all()
 	model = {
 		'title': 'Datasets',
 		'msg' : 'Upload file',
