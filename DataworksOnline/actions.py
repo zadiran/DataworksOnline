@@ -54,7 +54,14 @@ def datasets():
 
 @app.route('/dataset/<dsId>')
 def dataset(dsId):
+	if not current_user.is_authenticated:
+		return redirect(url_for('no_access'))
+
 	ds = Dataset.query.get(dsId);
+	
+	if ds.user_id is not current_user.id:
+		return redirect(url_for('no_access'))
+	
 	print(str(ds))
 	if(ds is None):
 		return 'aaaa'
