@@ -63,8 +63,8 @@ def dataset(dsId):
 		return redirect(url_for('no_access'))
 	
 	model = {
-		'title' : 'Dataset' + str(dsId),
-		'filename' : ds.filename 
+		'title' : 'Dataset',
+		'dataset' : ds 
 	}
 	return render_template('dataset.html', model = model)
 

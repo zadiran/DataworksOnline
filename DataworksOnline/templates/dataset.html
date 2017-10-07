@@ -1,12 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-	<h3>Dataset <strong>{{ model.filename}}</strong></h3>
+	<h3>Dataset </h3>
 	
 	<div>
-		Brief info
-	</div>
-	<div style="width:100%; height:200px; background: pink">
-		d
+		<p>Created at: <strong>{{ model.dataset.upload_date }}</strong></p>
+		<p>File name: <strong>{{ model.dataset.filename }}</strong></p>
 	</div>
 
 
