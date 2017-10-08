@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
+
 	<h3>Dataset </h3>
 	
 	<div>
-		<p>Created at: <strong>{{ model.dataset.upload_date }}</strong></p>
-		<p>File name: <strong>{{ model.dataset.filename }}</strong></p>
+		<p>Created at: <strong>{{ model.file.upload_date }}</strong></p>
+		<p>File name: <strong>{{ model.file.filename }}</strong></p>
+		<p>Columns: <strong>{{ ', '.join(model.dataset.columns) }}</strong></p>
 	</div>
-
 
 {% endblock %}

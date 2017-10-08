@@ -1,12 +1,14 @@
 import os
 import uuid
 import datetime
+import json
 from main import app, db, lm
 from models import Dataset, User
 from flask import render_template, flash, redirect, url_for, session, g, request
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from forms import FileUploadForm, LoginForm, RegistrationForm
+from datautil import get_parsed_file
 
 @app.before_request
 def before_request():
@@ -64,7 +66,8 @@ def dataset(dsId):
 	
 	model = {
 		'title' : 'Dataset',
-		'dataset' : ds 
+		'dataset' : get_parsed_file(ds.filename, ';'),
+		'file' : ds 
 	}
 	return render_template('dataset.html', model = model)
 
