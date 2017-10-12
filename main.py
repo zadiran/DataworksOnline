@@ -6,7 +6,7 @@ from config import Config
 from flask_login import LoginManager
 
 app = Flask(__name__)
-app.debug = True
+#app.debug = True
 app.config.from_object(Config())
 app.config['BASEDIR'] = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
