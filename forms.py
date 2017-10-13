@@ -6,8 +6,8 @@ class FileUploadForm(Form):
 	fileName = FileField('fileName', validators = [Required()])
 
 class LoginForm(Form):
-	login = TextField('login', validators = [Required()])
-	password = PasswordField('password', validators = [Required()])
+	login = TextField('login', validators = [Required(), Length(min = 4, max = 20)])
+	password = PasswordField('password', validators = [Required(), Length(min = 6, max = 20)])
 	remember_me = BooleanField('remember_me', default = False)
 
 class RegistrationForm(Form):

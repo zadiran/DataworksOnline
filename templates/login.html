@@ -10,13 +10,13 @@
 
         <div class="form-group">
             <label for="{{ model.form.login.id }}">Login</label>
-            {{ model.form.login(size=20, class="form-control") }}
+            {{ model.form.login(class="form-control") }}
             {{ render_errors(model.form.login) }}
         </div>
 
         <div class="form-group">
             <label for="{{ model.form.password.id }}">Password</label>
-            {{ model.form.password(size=20, class="form-control") }}
+            {{ model.form.password(class="form-control") }}
             {{ render_errors(model.form.password)}}
         </div>
 
