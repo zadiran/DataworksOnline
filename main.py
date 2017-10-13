@@ -2,14 +2,11 @@ import os
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from config import Config
+from config import configure_app
 from flask_login import LoginManager
 
 app = Flask(__name__)
-#app.debug = True
-app.config.from_object(Config())
-app.config['BASEDIR'] = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+configure_app(app)
 
 db = SQLAlchemy(app)
 lm = LoginManager(app)
