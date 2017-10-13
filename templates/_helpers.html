@@ -11,10 +11,10 @@
 {% endmacro %}
 
 
-{% macro render_field(label, field) %}
+{% macro render_field(label, field, placeholder = '') %}
     <div class="form-group">
         <label for="{{ field.id }}">{{ label }}</label>
-        {{ field(class="form-control") }}
+        {{ field(class="form-control", placeholder=placeholder) }}
         {{ render_errors(field) }}
     </div>
 {% endmacro %}

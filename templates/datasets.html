@@ -1,23 +1,87 @@
 {% extends "base.html" %}
+{% from "_helpers.html" import render_field, render_errors %}
+
 {% block content %}
-	<h2>{{ model.msg }}</h2>
-	<form action='' method='post' enctype="multipart/form-data">
+	<style>
+		#fileUploadForm {
+			width: 30%;
+			min-width: 300px;
+			margin: 25px 15px;
+			padding: 1em;
+		}
+		.quarter {
+			width:25%;
+		}
+		.separatorInput {
+			width: 100%; 
+			height:35px;
+		}
+		.separatorInput a {
+			margin-left: 5px;
+		}
+		.hidden {
+			display: none;
+		}
+	</style>
+	<script>
+		$(function () {
+			if($('#{{ model.form.form_opened.id}}').val() === 'True') {	
+				$('#fileUploadForm').removeClass('hidden');
+			}
+		});
+
+		function toggleForm() {
+			var hidden = $('#{{ model.form.form_opened.id}}');
+			if (hidden.val() !== 'True') {
+				hidden.val('True');
+				$('#fileUploadForm').removeClass('hidden');				
+			} else {
+				hidden.val('False');
+				$('#fileUploadForm').addClass('hidden');				
+			}
+		}
+
+		function presetSeparator(sep) {
+			$('.separator').val(sep);
+		}
+	</script>
+
+	<h2>Datasets</h2>
+
+	<a class="btn btn-info" onclick='toggleForm();'>Upload new dataset</a>
+	<form id='fileUploadForm' class='panel panel-default hidden' action='' method='post' enctype="multipart/form-data">
 		{{ model.form.hidden_tag() }}
 
-		{% if current_user.is_authenticated %}
-			<p>
-				{{ model.form.fileName}}
-			</p>
+		{{ render_field('Distinctive name', model.form.distinctive_name, 'Put an easy to remember name (not required)') }}
+		
+		<div class='form-group'>
+			<label for='{{ model.form.fileName.id }}'>Select file</label>
+			{{ model.form.fileName }}
+			{{ render_errors(model.form.fileName)}}
+		</div>
 
-			<button class="btn btn-primary" type="submit">Загрузить файл</button>
-		{% endif%}
+		<div class="form-group">
+				<label for="{{ model.form.separator.id }}">Separator</label>
+				<div class='separatorInput'>
+					{{ model.form.separator(class="form-control quarter pull-left separator") }}
+					
+					<a class='btn btn-default pull-left' onclick="presetSeparator(';')">;</a>
+					<a class='btn btn-default pull-left' onclick="presetSeparator(',')">,</a>
 
-		<h3>Datasets</h3>
-		{% for dataset in model.datasets %}
-			<div class="alert">
-				<h4><a href="/dataset/{{dataset.id}}">{{dataset.filename}}</a></h4>
-				
+				</div>
+				<div>
+
+				</div>
+				{{ render_errors(model.form.separator)}}
 			</div>
-		{% endfor %}
+
+		<button class="btn btn-primary" type="submit">Upload file</button>
 	</form>
+		
+	{% for dataset in model.datasets %}
+		<div class="alert">
+			<h4><a href="/dataset/{{dataset.id}}">{{dataset.filename}}</a></h4>
+			
+		</div>
+	{% endfor %}
 {% endblock %}

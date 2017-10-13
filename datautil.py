@@ -27,5 +27,4 @@ def get_parsed_file(filename, delimiter):
         'data': get_data(data, delimiter),
     }
     result['data_json'] = json.dumps(result['data'])
-    print(result['data_json'])
     return result

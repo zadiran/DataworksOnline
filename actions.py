@@ -30,25 +30,26 @@ def datasets():
 	datasets = Dataset.query.filter(Dataset.user_id == current_user.id).all()
 	model = {
 		'title': 'Datasets',
-		'msg' : 'Upload file',
-		'datasets' : datasets
+		'datasets': datasets
 	}
 	form = FileUploadForm()
 	if form.validate_on_submit():
 		files_folder = 'files'
 		dsFile = form.fileName.data
 
+		separator = form.separator.data
+		distinctive_name = form.distinctive_name.data
+
 		filename = secure_filename(dsFile.filename)
 		guid = str(uuid.uuid4())
 
 		dsFile.save(os.path.join(app.config['BASEDIR'], files_folder, guid))
 
-		dbDs = Dataset(filename, guid, g.user, datetime.datetime.utcnow())
+		dbDs = Dataset(filename, guid, g.user, datetime.datetime.utcnow(), separator, distinctive_name)
 
 		db.session.add(dbDs)
 		db.session.commit()
-
-		model['msg'] = secure_filename(dsFile.filename)
+		return redirect(url_for('datasets'))
 	
 	model['form'] = form
 	return render_template('datasets.html', model = model)
@@ -64,9 +65,12 @@ def dataset(dsId):
 	if ds is None or ds is not None and ds.user.id is not current_user.id:
 		return redirect(url_for('no_access'))
 	
+	if ds.distinctive_name is None:
+		ds.distinctive_name = ds.filename
+
 	model = {
 		'title' : 'Dataset',
-		'dataset' : get_parsed_file(ds.filename, ';'),
+		'dataset' : get_parsed_file(ds.filename, ds.separator),
 		'file' : ds 
 	}
 	return render_template('dataset.html', model = model)
