@@ -1,0 +1,17 @@
+{% extends "dataset.html" %}
+{% block dataset_sheet %}
+
+	
+<div style="padding:15px;">
+	<h3>Dataset <strong>{{ model.file.distinctive_name }}</strong></h3>
+	
+	<div>
+		<p>Created at: <strong>{{ model.file.upload_date }}</strong></p>
+		<p>File name: <strong>{{ model.file.filename }}</strong></p>
+		<p>Columns: <strong>{{ ', '.join(model.dataset.columns) }}</strong></p>
+		<p>Separator: <strong>{{  model.file.separator }}</strong></p>
+	</div>
+
+</div>
+	
+{% endblock %}

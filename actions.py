@@ -54,9 +54,9 @@ def datasets():
 	model['form'] = form
 	return render_template('datasets.html', model = model)
 
-
-@app.route('/dataset/<dsId>')
-def dataset(dsId):
+@app.route('/dataset/<dsId>', defaults = { 'pgId': 1})
+@app.route('/dataset/<dsId>/<pgId>')
+def dataset(dsId, pgId):
 	if not current_user.is_authenticated:
 		return redirect(url_for('no_access'))
 
@@ -73,7 +73,7 @@ def dataset(dsId):
 		'dataset' : get_parsed_file(ds.filename, ds.separator),
 		'file' : ds 
 	}
-	return render_template('dataset.html', model = model)
+	return render_template('dataset' + str(pgId) + '.html', model = model)
 
 @app.route('/about')
 def about():
