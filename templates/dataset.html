@@ -38,13 +38,20 @@
             text-decoration: none;
             color: black;
         }
+        .control-panel {
+            padding: 1.5em;
+            padding-top: 0;
+            border-top: 1px solid rgb(220, 220, 220);
+            border-bottom: 1px solid rgb(220, 220, 220);
+        }
     </style>
     <script>
         $(function () {
             $('.left-menu').parent().css('padding', '')
             $('.left-menu').css('height', $(window).innerHeight() - $('.navbar').height() - 2)
             $('.navbar').css('margin-bottom', '0')
-
+            
+            $('.control-panel-{{ model.page }}').css('display', '');
         });
     </script>
 
@@ -54,6 +61,14 @@
         </div>
         <a href="{{ url_for('dataset', dsId = model.file.id, pgId = 1)}}" class="left-menu-top-ref">General info</a>
         <a href="{{ url_for('dataset', dsId = model.file.id, pgId = 2)}}" class="left-menu-top-ref">Simple chart</a>
+        <a href="{{ url_for('dataset', dsId = model.file.id, pgId = 3)}}" class="left-menu-top-ref">Realtime chart</a>
+        <div class="control-panel control-panel-3" style="display: none;">
+            <p>
+                <label for="delayBetweenAdditions">Delay between additions</label>
+                <input type="number" class="form-control" id="delayBetweenAdditions" />
+            </p>
+            <a onclick="runProcess();" class="btn btn-primary">Run</a>
+        </div>
     </div>
     <div class="frame" style="margin-left: 20%; width:80%; height: 100% ">
         {% block dataset_sheet %}

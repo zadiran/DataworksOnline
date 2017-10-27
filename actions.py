@@ -71,7 +71,8 @@ def dataset(dsId, pgId):
 	model = {
 		'title' : 'Dataset',
 		'dataset' : get_parsed_file(ds.filename, ds.separator),
-		'file' : ds 
+		'file' : ds ,
+		'page' : pgId
 	}
 	return render_template('dataset' + str(pgId) + '.html', model = model)
 
