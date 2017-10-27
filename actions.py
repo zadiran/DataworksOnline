@@ -163,6 +163,26 @@ def register():
 	model['form'] = form
 	return render_template('registration.html', model = model)
 
+@app.route('/user', defaults = { 'userId' : -1 })
+@app.route('/user/<userId>')
+def user(userId):
+
+	if not current_user.is_authenticated:
+		return redirect(url_for('no_access'))
+
+	fixedUserId = current_user.id if userId is -1 else userId
+	requested_user = User.query.filter(User.id == fixedUserId).first()
+	
+	if requested_user is None or requested_user is not None and requested_user.id is not current_user.id:
+		return redirect(url_for('no_access'))
+
+	model = {
+		'title': 'User', 
+		'user' : requested_user 
+	}
+
+	return render_template('user.html', model = model)
+
 ##### end of authorization
 
 @app.route('/no_access')
