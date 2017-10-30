@@ -4,7 +4,7 @@ import datetime
 import json
 from main import app, db, lm
 from models import Dataset, User
-from flask import render_template, flash, redirect, url_for, session, g, request
+from flask import render_template, flash, redirect, url_for, session, g, request, send_from_directory
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from forms import FileUploadForm, LoginForm, RegistrationForm
@@ -75,6 +75,20 @@ def dataset(dsId, pgId):
 		'page' : pgId
 	}
 	return render_template('dataset' + str(pgId) + '.html', model = model)
+
+@app.route('/download/dataset/<datasetId>')
+def download_dataset(datasetId):
+	
+	if not current_user.is_authenticated:
+		return redirect(url_for('no_access'))
+	
+	dataset = Dataset.query.get(datasetId)
+
+	if dataset.user.id != current_user.id:
+		return redirect(url_for('no_access'))
+
+	return send_from_directory(os.path.join(app.config['BASEDIR'], 'files'), dataset.guid, as_attachment=True, attachment_filename = dataset.filename) 
+
 
 @app.route('/about')
 def about():
