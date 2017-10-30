@@ -30,15 +30,17 @@ class Dataset(db.Model):
 	guid = db.Column(db.String(), nullable = False, unique = True)
 	upload_date = db.Column(db.DateTime(), nullable = False)
 	distinctive_name = db.Column(db.String())
-	separator = db.Column(db.String, nullable = False, server_default = ';')
+	separator = db.Column(db.String(), nullable = False, server_default = ';')
+	data = db.Column(db.LargeBinary)
 
 	user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
-	def __init__(self, filename, guid, user, upload_date, separator, distinctive_name):
+	def __init__(self, filename, guid, user, upload_date, separator, distinctive_name, data):
 		self.filename = filename
 		self.guid = guid
 		self.user_id = user.id
 		self.upload_date = upload_date
 		self.separator = separator
 		self.distinctive_name = distinctive_name
+		self.data = data
 

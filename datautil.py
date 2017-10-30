@@ -1,4 +1,5 @@
 import json
+import io
 
 def read_file(filename):
     with open(filename) as file:
@@ -19,8 +20,14 @@ def get_data(lines, delimiter):
 
     return data
 
-def get_parsed_file(filename, delimiter):
-    data = read_file(filename)
+def read_bytes(byte_arr):
+    
+    convert = lambda a : a.decode('utf-8')
+    lines = list( map(convert, io.BytesIO(byte_arr).read().splitlines()))
+    return lines
+
+def get_parsed_file(byte_arr, delimiter):
+    data = read_bytes(byte_arr)
 
     result = {
         'columns': get_columns(data, delimiter),

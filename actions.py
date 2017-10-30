@@ -34,7 +34,7 @@ def datasets():
 	}
 	form = FileUploadForm()
 	if form.validate_on_submit():
-		files_folder = 'files'
+
 		dsFile = form.fileName.data
 
 		separator = form.separator.data
@@ -42,11 +42,12 @@ def datasets():
 
 		filename = secure_filename(dsFile.filename)
 		guid = str(uuid.uuid4())
-
-		dsFile.save(os.path.join(app.config['BASEDIR'], files_folder, guid))
-
-		dbDs = Dataset(filename, guid, g.user, datetime.datetime.utcnow(), separator, distinctive_name)
-
+		
+		dsFile.seek(0)
+		dt = dsFile.read()
+		
+		dbDs = Dataset(filename, guid, g.user, datetime.datetime.utcnow(), separator, distinctive_name, dt)
+		
 		db.session.add(dbDs)
 		db.session.commit()
 		return redirect(url_for('datasets'))
@@ -70,7 +71,7 @@ def dataset(dsId, pgId):
 
 	model = {
 		'title' : 'Dataset',
-		'dataset' : get_parsed_file(ds.filename, ds.separator),
+		'dataset' :  get_parsed_file(ds.data, ds.separator),
 		'file' : ds ,
 		'page' : pgId
 	}
