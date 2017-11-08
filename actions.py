@@ -4,11 +4,12 @@ import datetime
 import json
 from main import app, db, lm
 from models import Dataset, User
-from flask import render_template, flash, redirect, url_for, session, g, request, send_from_directory
+from flask import render_template, flash, redirect, url_for, session, g, request, send_from_directory, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from forms import FileUploadForm, LoginForm, RegistrationForm
 from datautil import get_parsed_file
+import forecast
 
 @app.before_request
 def before_request():
@@ -62,13 +63,13 @@ def dataset(dsId, pgId):
 		return redirect(url_for('no_access'))
 
 	ds = Dataset.query.get(dsId)
-	
+
 	if ds is None or ds is not None and ds.user.id is not current_user.id:
 		return redirect(url_for('no_access'))
 	
 	if ds.distinctive_name is None:
 		ds.distinctive_name = ds.filename
-
+		
 	model = {
 		'title' : 'Dataset',
 		'dataset' :  get_parsed_file(ds.data, ds.separator),
@@ -206,3 +207,35 @@ def no_access():
 		'title' : 'Access denied'
 	}
 	return render_template('no_access.html', model = model)
+
+
+@app.route('/get_data', methods = ['GET'])
+def get_data():
+	dataset = request.args.get('dataset', 0, type = int)
+	horizon = request.args.get('horizon', 0, type = int)
+
+	result = forecast.forecast(dataset, 1, horizon)
+
+	output = []
+	for x in range (0, len(result['data'])):
+		output.append({
+			'timestamp': result['timestamp'][x],
+			'real': result['data'][x],
+			'forecast': None, 
+			'confidence_interval_upper': None,
+			'confidence_interval_lower': None
+		})
+
+	output[-1]['forecast'] = output[-1]['real']
+	output[-1]['confidence_interval_upper'] = output[-1]['real']
+	output[-1]['confidence_interval_lower'] = output[-1]['real']
+
+	for x in range(0, len(result['forecast'])):
+		output.append({
+			'timestamp': result['timestamp'][len(result['data']) + x],
+			'real': None,
+			'forecast': result['forecast'][x],
+			'confidence_interval_upper': result['confidence_interval_upper'][x],
+			'confidence_interval_lower': result['confidence_interval_lower'][x]
+		})
+	return jsonify(output)
