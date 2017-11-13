@@ -57,7 +57,7 @@
 
     <div class="left-menu pull-left" style="width:20%; height: 100% ">
         <div class="left-menu-header">
-            Dataset <strong>{{ model.file.distinctive_name }}</strong>
+            Menu
         </div>
         <a href="{{ url_for('dataset', dsId = model.file.id, pgId = 1)}}" class="left-menu-top-ref">General info</a>
         <a href="{{ url_for('dataset', dsId = model.file.id, pgId = 2)}}" class="left-menu-top-ref">Simple chart</a>
@@ -81,6 +81,7 @@
             </p>
             <a onclick="runProcess();" class="btn btn-primary">Run</a>
         </div>
+        <a href="{{ url_for('dataset', dsId = model.file.id, pgId = 5)}}" class="left-menu-top-ref">Data table</a>
     </div>
     <div class="frame" style="margin-left: 20%; width:80%; height: 100% ">
         {% block dataset_sheet %}

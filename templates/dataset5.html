@@ -1,0 +1,20 @@
+{% extends "dataset.html" %}
+{% block dataset_sheet %}
+
+<div style="padding:15px;">
+        
+    <h1>Dataset <strong>{{ model.file.distinctive_name }}</strong></h1>
+</div>
+
+<div style="padding:15px;">
+    <p>
+        File: <strong>{{ model.file.filename }}</strong>
+        <a href="{{ url_for('download_dataset', datasetId = model.file.id)}}" target="_blank">download</a> 
+    </p>
+    
+    <div id="data-table">
+        No data to show.
+    </div>
+</div>
+	
+{% endblock %}
