@@ -230,7 +230,8 @@ def get_data():
 			'real': result['data'][x],
 			'forecast': None, 
 			'confidence_interval_upper': None,
-			'confidence_interval_lower': None
+			'confidence_interval_lower': None,
+			'outlier': result['outlier'][x] 
 		})
 
 	output[-1]['forecast'] = output[-1]['real']
@@ -243,6 +244,7 @@ def get_data():
 			'real': None,
 			'forecast': result['forecast'][x],
 			'confidence_interval_upper': result['confidence_interval_upper'][x],
-			'confidence_interval_lower': result['confidence_interval_lower'][x]
+			'confidence_interval_lower': result['confidence_interval_lower'][x],
+			'outlier': result['outlier'][len(result['data']) + x] 
 		})
 	return jsonify(output)

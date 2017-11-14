@@ -6,29 +6,39 @@
         .line {
           fill: none;
           stroke: steelblue;
-          stroke-width: 1.5px;
+          stroke-width: 2px;
           clip-path: url(#clip);
         }
         
         
         .line-forecast {
           fill: none;
-          stroke: green;
-          stroke-width: 1.5px;
+          stroke: orange;
+          stroke-width: 2px;
           clip-path: url(#clip);
         }
         
         .line-confidence-lower {
           fill: none;
-          stroke: lightgreen;
-          stroke-width: 1.5px;
+          stroke: #C3D7DF;
+          stroke-width: 2px;
           clip-path: url(#clip);
         }
 
         .line-confidence-upper {
           fill: none;
-          stroke: lightgreen;
-          stroke-width: 1.5px;
+          stroke: #C3D7DF;
+          stroke-width: 2px;
+          clip-path: url(#clip);
+        }
+        .dot {
+            clip-path: url(#clip);
+            fill: red;
+        }
+
+        .confidence-area {
+          fill: #f5f5f5;
+          stroke-width: 2px;
           clip-path: url(#clip);
         }
 
@@ -91,19 +101,24 @@
         var focus
         var brush 
         var data
+        var data_count = null;
         var zoom
 
         var real_big, real_small
         var forecast_big, forecast_small
         var confidence_upper_big, confidence_upper_small
         var confidence_lower_big, confidence_lower_small
+        var outlier_big, outlier_small
+        var confidence_area_big, confidence_area_small
         
+        var circles
+
         $(function () 
         {
             $('#delayBetweenAdditionsForecast').val(0.1)
             $('#forecastHorizon').val(5)
 
-            getData('{{ model.file.id}}');//JSON.parse('{{ model.dataset.data_json|safe }}');
+           // getData('{{ model.file.id}}');//JSON.parse('{{ model.dataset.data_json|safe }}');
            
          svg = d3.select("svg")
             margin = {top: 20, right: 20, bottom: 110, left: 40}
@@ -161,18 +176,34 @@
             .y(function(d) { return y2(d.confidence_interval_upper)})
 
         confidence_lower_big = d3.line()
-            .defined(function(d) { return  !!d.confidence_interval_lower})
-            .x(function(d) { return x(new Date(d.timestamp))})
-            .y(function(d) { return y(d.confidence_interval_lower)})
+            .defined(function(d) { return  !!d.confidence_interval_lower })
+            .x(function(d) { return x(new Date(d.timestamp)) })
+            .y(function(d) { return y(d.confidence_interval_lower) })
             
         confidence_lower_small = d3.line()
-            .defined(function(d) { return  !!d.confidence_interval_lower})
-            .x(function(d) { return x2(new Date(d.timestamp))})
-            .y(function(d) { return y2(d.confidence_interval_lower)})
+            .defined(function(d) { return  !!d.confidence_interval_lower })
+            .x(function(d) { return x2(new Date(d.timestamp)) })
+            .y(function(d) { return y2(d.confidence_interval_lower) })
+
+        confidence_area_big = d3.area()
+            .defined(function(d) {return !!d.confidence_interval_lower && !!d.confidence_interval_upper;})
+            .x(function(d) { return x(new Date(d.timestamp)); })
+            .y0(function(d) { return y(d.confidence_interval_upper); })
+            .y1(function(d) { return y(d.confidence_interval_lower); });
+
+        outlier_big = d3.line()
+            .defined(function(d) { return !!d.outlier })
+            .x(function(d) { return x(new Date(d.timestamp)) })
+            .y(function(d) { return y(d.outlier) })
+
+        outlier_small = d3.line()
+            .defined(function(d) { return !!d.outlier })
+            .x(function(d) { return x2(new Date(d.timestamp)) })
+            .y(function(d) { return y2(d.outlier) })
 
          brush = d3.brushX()
             .extent([[0, 0], [width, height2]])
-            .on("brush end", brushed);
+            //.on("brush end", brushed); todo fix dots scale on change and return
         
          zoom = d3.zoom()
             .scaleExtent([1, Infinity])
@@ -229,31 +260,42 @@
               .call(zoom);
     
             function brushed() {
-            if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-            var s = d3.event.selection || x2.range();
-            x.domain(s.map(x2.invert, x2));
-            focus.select(".line").attr("d", real_big);
-            focus.select(".line-forecast").attr("d", forecast_big);
-            focus.select(".line-confidence-lower").attr("d", confidence_lower_big);
-            focus.select(".line-confidence-upper").attr("d", confidence_upper_big);
-            focus.select(".axis--x").call(xAxis);
-            svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
-                .scale(width / (s[1] - s[0]))
-                .translate(-s[0], 0));
+                if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+                var s = d3.event.selection || x2.range();
+                x.domain(s.map(x2.invert, x2));
+                focus.select(".line").attr("d", real_big);
+                focus.select(".line-forecast").attr("d", forecast_big);
+                focus.select(".line-confidence-lower").attr("d", confidence_lower_big);
+                focus.select(".line-confidence-upper").attr("d", confidence_upper_big);
+                focus.select('.line-outlier').attr('d', outlier_big);
+                // focus.selectAll("dot")
+                // .attr("transform", transform);
+
+                var new_yScale = d3.event.transform.rescaleX(x2);
+                circles.attr("cx", function(d) { return new_yScale(new Date(d.timestamp)); });
+
+                focus.select(".axis--x").call(xAxis);
+                svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
+                    .scale(width / (s[1] - s[0]))
+                    .translate(-s[0], 0));
             }
             
             function zoomed() {
-            if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
-            var t = d3.event.transform;
-            x.domain(t.rescaleX(x2).domain());
+                if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
+                var t = d3.event.transform;
+                x.domain(t.rescaleX(x2).domain());
 
-            focus.select(".line").attr("d", real_big);
-            focus.select(".line-forecast").attr("d", forecast_big);
-            focus.select(".line-confidence-lower").attr("d", confidence_lower_big);
-            focus.select(".line-confidence-upper").attr("d", confidence_upper_big);
+                focus.select(".line").attr("d", real_big);
+                focus.select(".line-forecast").attr("d", forecast_big);
+                focus.select(".line-confidence-lower").attr("d", confidence_lower_big);
+                focus.select(".line-confidence-upper").attr("d", confidence_upper_big);
+                focus.select('.confidence-area').attr('d', confidence_area_big)
+                
+                var new_yScale = d3.event.transform.rescaleX(x2);
+                circles.attr("cx", function(d) { return new_yScale(new Date(d.timestamp)); });
 
-            focus.select(".axis--x").call(xAxis);
-            context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
+                focus.select(".axis--x").call(xAxis);
+                context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
             }
 
         });
@@ -265,11 +307,13 @@
             focus.selectAll('.line-forecast').remove();
             focus.selectAll('.line-confidence-lower').remove();
             focus.selectAll('.line-confidence-upper').remove();
+            focus.selectAll('circle').remove();
 
             context.selectAll('.line').remove();
             context.selectAll('.line-forecast').remove();
             context.selectAll('.line-confidence-lower').remove();
             context.selectAll('.line-confidence-upper').remove();
+            context.selectAll('.line-outlier').remove();
 
             var delay = parseFloat($('#delayBetweenAdditionsForecast').val(), 10);
             getData('{{ model.file.id }}');
@@ -304,32 +348,13 @@
                 focus.selectAll('.line-forecast').remove();
                 focus.selectAll('.line-confidence-lower').remove();
                 focus.selectAll('.line-confidence-upper').remove();
+                focus.selectAll('.confidence-area').remove();
+                svg.selectAll('.circles').remove();
                 
                 context.selectAll('.line').remove();
                 context.selectAll('.line-forecast').remove();
                 context.selectAll('.line-confidence-lower').remove();
                 context.selectAll('.line-confidence-upper').remove();
-                
-                focus.append("path")
-                .datum(data.slice(0, cnt))
-                .attr("class", "line")
-                .attr("d", real_big);
-                
-                context.append('path')
-                .datum(data.slice(0, cnt))
-                .attr('class', 'line')
-                .attr('d', real_small);
-
-                
-                focus.append("path")
-                .datum(data.slice(0, cnt))
-                .attr("class", "line-forecast")
-                .attr("d", forecast_big);
-
-                context.append("path")
-                .datum(data.slice(0, cnt))
-                .attr("class", "line-forecast")
-                .attr("d", forecast_small);
 
                 focus.append('path')
                 .datum(data.slice(0, cnt))
@@ -350,7 +375,55 @@
                 .datum(data.slice(0, cnt))
                 .attr('class', 'line-confidence-lower')
                 .attr('d', confidence_lower_small);
-            //     context.append("path")
+
+                focus.append("path")
+                .datum(data.slice(0, cnt))
+                .attr("class", "line")
+                .attr("d", real_big);
+                
+                context.append('path')
+                .datum(data.slice(0, cnt))
+                .attr('class', 'line')
+                .attr('d', real_small);
+
+                focus.append('path')
+                .datum(data.slice(0, cnt))
+                .attr('class', 'confidence-area')
+                .attr('d', confidence_area_big)
+                
+                focus.append("path")
+                .datum(data.slice(0, cnt))
+                .attr("class", "line-forecast")
+                .attr("d", forecast_big);
+
+                context.append("path")
+                .datum(data.slice(0, cnt))
+                .attr("class", "line-forecast")
+                .attr("d", forecast_small);
+
+
+
+                circles = svg.append("g")
+                    .attr("class", "circles")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                    .selectAll("circle")
+                    .data(data.slice(0, cnt))
+                    .enter()
+                    .append("circle")
+                    .attr('class', 'dot')
+                    .attr("r", 6)
+                    .attr("cx", function(d) { return x(new Date(d.timestamp)); })
+                    .attr("cy", function(d) { return y(d.outlier); });
+            //     focus.append('path')
+            //     .datum(data.slice(0, cnt))
+            //     .attr('class', 'line-outlier')
+            //     .attr('d', outlier_big);
+                
+            //     context.append('path')
+            //     .datum(data.slice(0, cnt))
+            //     .attr('class', 'line-outlier')
+            //     .attr('d', outlier_small);
+            // //     context.append("path")
             //   .datum(data.data.slice(0, cnt))
             //   .attr("class", "line")
             //   .attr("d", area2);
@@ -370,11 +443,13 @@
             cache: false,
             data: { 
                 dataset: id,
-                horizon: $('#forecastHorizon').val()
+                horizon: $('#forecastHorizon').val(),
+                count: data_count
             },
             url: '{{url_for("get_data")}}',
             success: function(loaded) {
                 data = loaded;
+                data_count = data.data_count;
             },
             error: function() {
                 alert('Error happened while data from server was retrieved. Please try to reload page in a while')

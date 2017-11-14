@@ -13,7 +13,9 @@ def forecast(datasetId, columnNumber, horizon):
 
         dataRow = list(map(lambda x: float(x[columnNumber]), data))
 
-        forecast = dataRow[-horizon : ] 
+        forecast = dataRow[-horizon : ]
+        for x in range(0, len(forecast)):
+            forecast[x] = forecast[x] + 3 * x 
         
         timestamps = list(map(lambda x: parser.parse(x[0]), data))
         timestep =  timestamps[1] - timestamps[0]
@@ -30,9 +32,13 @@ def forecast(datasetId, columnNumber, horizon):
             ciData.append(x)
             
             mean, sigma = np.mean(ciData), np.std(ciData)
-            interval = stats.norm.interval(0.95, loc=x, scale=sigma)
+            interval = stats.norm.interval(0.997, loc=x, scale=sigma)
             ciLower.append(interval[0])
             ciUpper.append(interval[1])
+
+        allData = dataRow + forecast
+        allMean, allSigma = np.mean(allData), np.std(allData)
+        outlier = list(map(lambda x: x if abs(x - allMean) > 2 * allSigma else None, allData))
             
 
         return {
@@ -41,7 +47,8 @@ def forecast(datasetId, columnNumber, horizon):
             'data': dataRow, 
             'forecast': forecast if horizon > 0 else [],
             'confidence_interval_upper': ciUpper,
-            'confidence_interval_lower': ciLower
+            'confidence_interval_lower': ciLower,
+            'outlier': outlier
         }
     else:
         return { 'error': 'Dataset not found.'}

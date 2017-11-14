@@ -35,3 +35,4 @@ def get_parsed_file(byte_arr, delimiter):
     }
     result['data_json'] = json.dumps(result['data'])
     return result
+
