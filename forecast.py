@@ -12,7 +12,7 @@ def forecast(datasetId, columnNumber, horizon, count):
         data = du.get_parsed_file(dataset.data, dataset.separator)['data']
 
         dataRow = list(map(lambda x: float(x[columnNumber]), data))
-
+        dataRowBig = list(dataRow)
         if count == 0: 
             count = int(len(dataRow) * 0.75) - 1
         max_length = len(dataRow)
@@ -20,8 +20,8 @@ def forecast(datasetId, columnNumber, horizon, count):
         dataRow = dataRow[:count]
 
         forecast = dataRow[-horizon : ]
-        for x in range(0, len(forecast)):
-            forecast[x] = forecast[x] + 3 * x 
+        # for x in range(0, len(forecast)):
+        #     forecast[x] = forecast[x] + 3 * x 
         
         timestamps = list(map(lambda x: parser.parse(x[0]), data))
         timestep =  timestamps[1] - timestamps[0]
@@ -56,7 +56,8 @@ def forecast(datasetId, columnNumber, horizon, count):
             'confidence_interval_lower': ciLower,
             'outlier': outlier,
             'data_count': count + 1,
-            'stop_condition': max_length <= count 
+            'stop_condition': max_length <= count ,
+            'all_data' :dataRowBig
         }
     else:
         return { 'error': 'Dataset not found.'}

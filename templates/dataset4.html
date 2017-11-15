@@ -78,6 +78,8 @@
         })
         return maxval;
     }
+        var minlen = parseInt('{{ model.dataset.minlen }}');
+        var maxlen = parseInt('{{ model.dataset.maxlen }}');
           var svg ,
             margin ,
             margin2,
@@ -115,7 +117,7 @@
 
         $(function () 
         {
-            $('#delayBetweenAdditionsForecast').val(0.1)
+            $('#delayBetweenAdditionsForecast').val(1)
             $('#forecastHorizon').val(5)
 
            // getData('{{ model.file.id}}');//JSON.parse('{{ model.dataset.data_json|safe }}');
@@ -315,48 +317,70 @@
             context.selectAll('.line-confidence-upper').remove();
             context.selectAll('.line-outlier').remove();
 
-            var delay = parseFloat($('#delayBetweenAdditionsForecast').val(), 10);
-            getData('{{ model.file.id }}');
-            svg.select('path.line').remove();
+             var delay = parseFloat($('#delayBetweenAdditionsForecast').val(), 10);
+        //     //getData('{{ model.file.id }}', maxlen);
+        //     svg.select('path.line').remove();
             
-          x.domain(d3.extent(data, function(d) { return new Date(d.timestamp); }));
+        //   x.domain(d3.extent(data, function(d) { return new Date(d.timestamp); }));
     
-          var min = parseFloat(d3.min(data, function(d) { 
-              return minimum([d.confidence_interval_lower,d.real, d.forecast,  d.confidence_interval_upper]); 
-            }));
-          var max = parseFloat(d3.max(data, function(d) { 
-              //console.log(d.confidence_interval_lower)
-              return maximum([d.real, d.forecast, d.confidence_interval_lower, d.confidence_interval_upper]); 
-            }));
-          console.log('min ' + min)
-          console.log('max '+ max)
-          var addition = (max - min) / 10; 
-          y.domain([min - addition ,max + addition]);
-          console.log([min - addition ,max + addition])
+        //   var min = parseFloat(d3.min(data, function(d) { 
+        //       return minimum([d.confidence_interval_lower,d.real, d.forecast,  d.confidence_interval_upper]); 
+        //     }));
+        //   var max = parseFloat(d3.max(data, function(d) { 
+        //       //console.log(d.confidence_interval_lower)
+        //       return maximum([d.real, d.forecast, d.confidence_interval_lower, d.confidence_interval_upper]); 
+        //     }));
+        //   console.log('min ' + min)
+        //   console.log('max '+ max)
+        //   var addition = (max - min) / 10; 
+        //   y.domain([min - addition ,max + addition]);
+        //   console.log([min - addition ,max + addition])
 
-          focus.selectAll('.axis--y').call(yAxis);
-          focus.selectAll('.axis--x').call(xAxis);
+        //   focus.selectAll('.axis--y').call(yAxis);
+        //   focus.selectAll('.axis--x').call(xAxis);
 
-          x2.domain(x.domain());
-          y2.domain(y.domain());
-            
-            drawStep();
+        //   x2.domain(x.domain());
+        // //   y2.domain(y.domain());
+        // var i = minlen;
+        // var interval = setInterval(function() {
+        //     drawStep(i);
+        //     i = i + 1;
+        //     if (i >= maxlen) {
+        //         clearinterval(interval);
+        //     }
+        // }, delay * 1000);
+        var j = minlen;
+        for (var i = minlen; i <= maxlen; i++)  {
+                 var del =( i - minlen) * delay * 1000;
+             setTimeout(function() {
+                 var k = parseInt(j);
+                 j++;
+                 drawStep(k);
+             },del);
+            // debugger;
+             //sleep(delay * 1000);
+             }
         }
         
-    function getData(id) {
+    function sleep(ms) {
+        var now = new Date().getTime();
+        while(new Date().getTime() < now + ms){ /* do nothing */ } 
+    }
+    function getData(id, i) {
         $.ajax({
             method: 'GET',
             async: false,
-            cache: false,
+            cache: true,
             data: { 
                 dataset: id,
                 horizon: $('#forecastHorizon').val(),
-                count: data_count
+                count: i
             },
             url: '{{url_for("get_data")}}',
             success: function(loaded) {
                 data = loaded;
-                data_count = data[0].data_count;
+            //    alert(loaded)
+             //   console.log(loaded);
             },
             error: function() {
                 alert('Error happened while data from server was retrieved. Please try to reload page in a while')
@@ -364,23 +388,12 @@
         })
     }
     var hard_stop;
-    function drawStep() {
-        getData('{{ model.file.id }}');
-
-        doRoutine();
-        
-        var delay = parseFloat($('#delayBetweenAdditionsForecast').val(), 10);
-        //alert(data[0].stop_condition)
-        if (data[0].stop_condition != 'true') {
-           // alert('wea are here')
-            setTimeout(function() {drawStep()}, delay * 1000);
-        }
-        else {
-            timeout
-        }
+    function drawStep(j) {
+        getData('{{ model.file.id }}', j);
+        doRoutine(j);
     }
 
-    function doRoutine() {
+    function doRoutine(j) {
         focus.selectAll('.line').remove();
             focus.selectAll('.line-forecast').remove();
             focus.selectAll('.line-confidence-lower').remove();
@@ -393,11 +406,12 @@
             context.selectAll('.line-confidence-upper').remove();
             context.selectAll('.line-outlier').remove();
 
-            var delay = parseFloat($('#delayBetweenAdditionsForecast').val(), 10);
-            getData('{{ model.file.id }}');
+            //var delay = parseFloat($('#delayBetweenAdditionsForecast').val(), 10);
+           // getData('{{ model.file.id }}');
             svg.select('path.line').remove();
             
           x.domain(d3.extent(data, function(d) { return new Date(d.timestamp); }));
+          //x.domain(d3.extent(data.slice(j-minlen, data.length), function(d) { return new Date(d.timestamp); }));
     
           var min = parseFloat(d3.min(data, function(d) { 
               return minimum([d.confidence_interval_lower,d.real, d.forecast,  d.confidence_interval_upper]); 
@@ -451,11 +465,6 @@
         .attr('class', 'line-confidence-lower')
         .attr('d', confidence_lower_small);
 
-        focus.append("path")
-        .datum(data)
-        .attr("class", "line")
-        .attr("d", real_big);
-        
         context.append('path')
         .datum(data)
         .attr('class', 'line')
@@ -465,6 +474,11 @@
         .datum(data)
         .attr('class', 'confidence-area')
         .attr('d', confidence_area_big)
+        
+        focus.append("path")
+        .datum(data)
+        .attr("class", "line")
+        .attr("d", real_big);
         
         focus.append("path")
         .datum(data)

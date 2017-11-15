@@ -54,6 +54,7 @@ def datasets():
 		return redirect(url_for('datasets'))
 	
 	model['form'] = form
+
 	return render_template('datasets.html', model = model)
 
 @app.route('/dataset/<dsId>', defaults = { 'pgId': 1})
@@ -70,9 +71,12 @@ def dataset(dsId, pgId):
 	if ds.distinctive_name is None:
 		ds.distinctive_name = ds.filename
 		
+	pf = get_parsed_file(ds.data, ds.separator);
+	pf['minlen'] = int(len(pf['data']) / 2)
+	pf['maxlen'] = len(pf['data'])
 	model = {
 		'title' : 'Dataset',
-		'dataset' :  get_parsed_file(ds.data, ds.separator),
+		'dataset' :  pf,
 		'file' : ds ,
 		'page' : pgId
 	}
@@ -244,7 +248,7 @@ def get_data():
 	for x in range(0, len(result['forecast'])):
 		output.append({
 			'timestamp': result['timestamp'][len(result['data']) + x],
-			'real': None,
+			'real': None if len(result['all_data']) <= len(result['data']) + x else result['all_data'][len(result['data']) + x],
 			'forecast': result['forecast'][x],
 			'confidence_interval_upper': result['confidence_interval_upper'][x],
 			'confidence_interval_lower': result['confidence_interval_lower'][x],
