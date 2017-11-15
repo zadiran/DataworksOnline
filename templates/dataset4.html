@@ -339,101 +339,8 @@
 
           x2.domain(x.domain());
           y2.domain(y.domain());
-
-            var cnt = 1;
-            var max_cnt = data.length;
-            var interval = setInterval(function() {
-                // Select the section we want to apply our changes to
-                focus.selectAll('.line').remove();
-                focus.selectAll('.line-forecast').remove();
-                focus.selectAll('.line-confidence-lower').remove();
-                focus.selectAll('.line-confidence-upper').remove();
-                focus.selectAll('.confidence-area').remove();
-                svg.selectAll('.circles').remove();
-                
-                context.selectAll('.line').remove();
-                context.selectAll('.line-forecast').remove();
-                context.selectAll('.line-confidence-lower').remove();
-                context.selectAll('.line-confidence-upper').remove();
-
-                focus.append('path')
-                .datum(data.slice(0, cnt))
-                .attr('class', 'line-confidence-upper')
-                .attr('d', confidence_upper_big);
-                
-                context.append('path')
-                .datum(data.slice(0, cnt))
-                .attr('class', 'line-confidence-upper')
-                .attr('d', confidence_upper_small);
-                
-                focus.append('path')
-                .datum(data.slice(0, cnt))
-                .attr('class', 'line-confidence-lower')
-                .attr('d', confidence_lower_big);
-                
-                context.append('path')
-                .datum(data.slice(0, cnt))
-                .attr('class', 'line-confidence-lower')
-                .attr('d', confidence_lower_small);
-
-                focus.append("path")
-                .datum(data.slice(0, cnt))
-                .attr("class", "line")
-                .attr("d", real_big);
-                
-                context.append('path')
-                .datum(data.slice(0, cnt))
-                .attr('class', 'line')
-                .attr('d', real_small);
-
-                focus.append('path')
-                .datum(data.slice(0, cnt))
-                .attr('class', 'confidence-area')
-                .attr('d', confidence_area_big)
-                
-                focus.append("path")
-                .datum(data.slice(0, cnt))
-                .attr("class", "line-forecast")
-                .attr("d", forecast_big);
-
-                context.append("path")
-                .datum(data.slice(0, cnt))
-                .attr("class", "line-forecast")
-                .attr("d", forecast_small);
-
-
-
-                circles = svg.append("g")
-                    .attr("class", "circles")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-                    .selectAll("circle")
-                    .data(data.slice(0, cnt))
-                    .enter()
-                    .append("circle")
-                    .attr('class', 'dot')
-                    .attr("r", 6)
-                    .attr("cx", function(d) { return x(new Date(d.timestamp)); })
-                    .attr("cy", function(d) { return y(d.outlier); });
-            //     focus.append('path')
-            //     .datum(data.slice(0, cnt))
-            //     .attr('class', 'line-outlier')
-            //     .attr('d', outlier_big);
-                
-            //     context.append('path')
-            //     .datum(data.slice(0, cnt))
-            //     .attr('class', 'line-outlier')
-            //     .attr('d', outlier_small);
-            // //     context.append("path")
-            //   .datum(data.data.slice(0, cnt))
-            //   .attr("class", "line")
-            //   .attr("d", area2);
-                cnt = cnt + 1;
-                if (cnt > max_cnt) {
-                    cnt = 0;
-                    clearInterval(interval)
-                }
-                //console.log(cnt);
-            }, delay * 1000)
+            
+            drawStep();
         }
         
     function getData(id) {
@@ -449,12 +356,139 @@
             url: '{{url_for("get_data")}}',
             success: function(loaded) {
                 data = loaded;
-                data_count = data.data_count;
+                data_count = data[0].data_count;
             },
             error: function() {
                 alert('Error happened while data from server was retrieved. Please try to reload page in a while')
             }
         })
+    }
+    var hard_stop;
+    function drawStep() {
+        getData('{{ model.file.id }}');
+
+        doRoutine();
+        
+        var delay = parseFloat($('#delayBetweenAdditionsForecast').val(), 10);
+        //alert(data[0].stop_condition)
+        if (data[0].stop_condition != 'true') {
+           // alert('wea are here')
+            setTimeout(function() {drawStep()}, delay * 1000);
+        }
+        else {
+            timeout
+        }
+    }
+
+    function doRoutine() {
+        focus.selectAll('.line').remove();
+            focus.selectAll('.line-forecast').remove();
+            focus.selectAll('.line-confidence-lower').remove();
+            focus.selectAll('.line-confidence-upper').remove();
+            focus.selectAll('circle').remove();
+
+            context.selectAll('.line').remove();
+            context.selectAll('.line-forecast').remove();
+            context.selectAll('.line-confidence-lower').remove();
+            context.selectAll('.line-confidence-upper').remove();
+            context.selectAll('.line-outlier').remove();
+
+            var delay = parseFloat($('#delayBetweenAdditionsForecast').val(), 10);
+            getData('{{ model.file.id }}');
+            svg.select('path.line').remove();
+            
+          x.domain(d3.extent(data, function(d) { return new Date(d.timestamp); }));
+    
+          var min = parseFloat(d3.min(data, function(d) { 
+              return minimum([d.confidence_interval_lower,d.real, d.forecast,  d.confidence_interval_upper]); 
+            }));
+          var max = parseFloat(d3.max(data, function(d) { 
+              //console.log(d.confidence_interval_lower)
+              return maximum([d.real, d.forecast, d.confidence_interval_lower, d.confidence_interval_upper]); 
+            }));
+          console.log('min ' + min)
+          console.log('max '+ max)
+          var addition = (max - min) / 10; 
+          y.domain([min - addition ,max + addition]);
+          console.log([min - addition ,max + addition])
+
+          focus.selectAll('.axis--y').call(yAxis);
+          focus.selectAll('.axis--x').call(xAxis);
+
+          x2.domain(x.domain());
+          y2.domain(y.domain());
+          
+        // Select the section we want to apply our changes to
+        focus.selectAll('.line').remove();
+        focus.selectAll('.line-forecast').remove();
+        focus.selectAll('.line-confidence-lower').remove();
+        focus.selectAll('.line-confidence-upper').remove();
+        focus.selectAll('.confidence-area').remove();
+        svg.selectAll('.circles').remove();
+        
+        context.selectAll('.line').remove();
+        context.selectAll('.line-forecast').remove();
+        context.selectAll('.line-confidence-lower').remove();
+        context.selectAll('.line-confidence-upper').remove();
+
+        focus.append('path')
+        .datum(data)
+        .attr('class', 'line-confidence-upper')
+        .attr('d', confidence_upper_big);
+        
+        context.append('path')
+        .datum(data)
+        .attr('class', 'line-confidence-upper')
+        .attr('d', confidence_upper_small);
+        
+        focus.append('path')
+        .datum(data)
+        .attr('class', 'line-confidence-lower')
+        .attr('d', confidence_lower_big);
+        
+        context.append('path')
+        .datum(data)
+        .attr('class', 'line-confidence-lower')
+        .attr('d', confidence_lower_small);
+
+        focus.append("path")
+        .datum(data)
+        .attr("class", "line")
+        .attr("d", real_big);
+        
+        context.append('path')
+        .datum(data)
+        .attr('class', 'line')
+        .attr('d', real_small);
+
+        focus.append('path')
+        .datum(data)
+        .attr('class', 'confidence-area')
+        .attr('d', confidence_area_big)
+        
+        focus.append("path")
+        .datum(data)
+        .attr("class", "line-forecast")
+        .attr("d", forecast_big);
+
+        context.append("path")
+        .datum(data)
+        .attr("class", "line-forecast")
+        .attr("d", forecast_small);
+
+
+
+        circles = svg.append("g")
+            .attr("class", "circles")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+            .selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr('class', 'dot')
+            .attr("r", 6)
+            .attr("cx", function(d) { return x(new Date(d.timestamp)); })
+            .attr("cy", function(d) { return y(d.outlier); });
     }
 </script>
 <div style="padding:15px;">

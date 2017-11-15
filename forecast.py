@@ -6,12 +6,18 @@ from dateutil import parser
 from scipy import stats
 import numpy as np
 
-def forecast(datasetId, columnNumber, horizon):
+def forecast(datasetId, columnNumber, horizon, count):
     dataset = Dataset.query.get(datasetId)
     if dataset is not None:
         data = du.get_parsed_file(dataset.data, dataset.separator)['data']
 
         dataRow = list(map(lambda x: float(x[columnNumber]), data))
+
+        if count == 0: 
+            count = int(len(dataRow) * 0.75) - 1
+        max_length = len(dataRow)
+
+        dataRow = dataRow[:count]
 
         forecast = dataRow[-horizon : ]
         for x in range(0, len(forecast)):
@@ -48,7 +54,9 @@ def forecast(datasetId, columnNumber, horizon):
             'forecast': forecast if horizon > 0 else [],
             'confidence_interval_upper': ciUpper,
             'confidence_interval_lower': ciLower,
-            'outlier': outlier
+            'outlier': outlier,
+            'data_count': count + 1,
+            'stop_condition': max_length <= count 
         }
     else:
         return { 'error': 'Dataset not found.'}

@@ -220,8 +220,9 @@ def no_access():
 def get_data():
 	dataset = request.args.get('dataset', 0, type = int)
 	horizon = request.args.get('horizon', 0, type = int)
+	count = request.args.get('count', 0, type = int)
 
-	result = forecast.forecast(dataset, 1, horizon)
+	result = forecast.forecast(dataset, 1, horizon, count)
 
 	output = []
 	for x in range (0, len(result['data'])):
@@ -231,7 +232,9 @@ def get_data():
 			'forecast': None, 
 			'confidence_interval_upper': None,
 			'confidence_interval_lower': None,
-			'outlier': result['outlier'][x] 
+			'outlier': result['outlier'][x],
+			'data_count': result['data_count'],
+			'stop_condition': result['stop_condition']
 		})
 
 	output[-1]['forecast'] = output[-1]['real']
@@ -245,6 +248,8 @@ def get_data():
 			'forecast': result['forecast'][x],
 			'confidence_interval_upper': result['confidence_interval_upper'][x],
 			'confidence_interval_lower': result['confidence_interval_lower'][x],
-			'outlier': result['outlier'][len(result['data']) + x] 
+			'outlier': result['outlier'][len(result['data']) + x] ,
+			'data_count': result['data_count'],
+			'stop_condition': result['stop_condition']
 		})
 	return jsonify(output)
