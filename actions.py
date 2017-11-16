@@ -102,14 +102,10 @@ def download_dataset(datasetId):
 	if dataset.user.id != current_user.id:
 		return redirect(url_for('no_access'))
 
-	print(dataset.__dict__)
-	#dataset.data.seek(0)
-	bio = io.BytesIO(dataset.data)
-	#bio.seek(0)
-	return send_file(bio,
+	return send_file(io.BytesIO(dataset.data),
                      attachment_filename=dataset.filename,
 					 mimetype='application/octet-stream',
-					 as_attachment=True)#(os.path.join(app.config['BASEDIR'], 'files'), dataset.guid, as_attachment=True, attachment_filename = dataset.filename) 
+					 as_attachment=True) 
 
 @app.route('/delete/dataset/<datasetId>')
 def delete_dataset(datasetId):
