@@ -80,8 +80,21 @@
 		
 	{% for dataset in model.datasets %}
 		<div class="alert">
-			<h4><a href="/dataset/{{dataset.id}}">{{dataset.filename}}</a></h4>
-			
+			<h4>
+				<a href="{{ url_for('dataset', dsId = dataset.id)}}"><strong>{{dataset.distinctive_name }}</strong></a>
+			</h4>
+			<p>
+				{% if dataset.display_filename %}
+				<span><strong>File:</strong> {{ dataset.display_filename }}</span>
+				<br>
+				{% endif %}
+				<span><strong>Uploaded:</strong> {{ dataset.upload_date.strftime("%Y-%m-%d %H:%M:%S") }}</span>
+			</p>
+			<br>
+			<a><span class="btn btn-default glyphicon glyphicon-edit"></span></a>
+			<a href="{{ url_for('download_dataset', datasetId = dataset.id)}}"><span class="btn btn-default glyphicon glyphicon-download"></span></a>
+			<a href="{{ url_for('delete_dataset', datasetId = dataset.id)}}"><span class="btn btn-default glyphicon glyphicon-remove"></span></a><br>
+			<hr style="width:30%; border-top: 1px solid #ddd" class="pull-left">
 		</div>
 	{% endfor %}
 {% endblock %}

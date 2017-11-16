@@ -1,4 +1,5 @@
 import os
+import io
 import uuid
 import datetime
 import json
@@ -29,6 +30,14 @@ def datasets():
 		return redirect(url_for('no_access'))
 
 	datasets = Dataset.query.filter(Dataset.user_id == current_user.id).all()
+
+	for ds in datasets:
+		ds.distinctive_name = ds.distinctive_name or ds.filename
+		if ds.distinctive_name == ds.filename:
+			ds.display_filename = ''
+		else: 
+			ds.display_filename = ds.filename
+			
 	model = {
 		'title': 'Datasets',
 		'datasets': datasets
@@ -94,14 +103,28 @@ def download_dataset(datasetId):
 		return redirect(url_for('no_access'))
 
 	print(dataset.__dict__)
-	dataset.data.seek(0)
+	#dataset.data.seek(0)
 	bio = io.BytesIO(dataset.data)
-	bio.seek(0)
+	#bio.seek(0)
 	return send_file(bio,
                      attachment_filename=dataset.filename,
-					 mimetype='octet/stream',
-                     as_attachment=True)#(os.path.join(app.config['BASEDIR'], 'files'), dataset.guid, as_attachment=True, attachment_filename = dataset.filename) 
+					 mimetype='application/octet-stream',
+					 as_attachment=True)#(os.path.join(app.config['BASEDIR'], 'files'), dataset.guid, as_attachment=True, attachment_filename = dataset.filename) 
 
+@app.route('/delete/dataset/<datasetId>')
+def delete_dataset(datasetId):
+	if not current_user.is_authenticated:
+		return redirect(url_for('no_access'))
+	
+	dataset = Dataset.query.get(datasetId)
+
+	if dataset.user.id != current_user.id:
+		return redirect(url_for('no_access'))
+
+	Dataset.query.filter_by(id=datasetId).delete()
+	db.session.commit()
+
+	return redirect(url_for('datasets'))
 
 @app.route('/about')
 def about():
