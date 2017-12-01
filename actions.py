@@ -269,7 +269,7 @@ def get_data():
 	for x in range(0, len(result['forecast'])):
 		output.append({
 			'timestamp': result['timestamp'][len(result['data']) + x],
-			'real': None if len(result['all_data']) <= len(result['data']) + x else result['all_data'][len(result['data']) + x],
+			'real': None,
 			'forecast': result['forecast'][x],
 			'confidence_interval_upper': result['confidence_interval_upper'][x],
 			'confidence_interval_lower': result['confidence_interval_lower'][x],
