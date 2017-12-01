@@ -43,13 +43,13 @@ def forecast(datasetId, columnNumber, horizon, count, forecast_model, outlier_de
         ciLower = []
         ciUpper = []
         ciData = list(dataRow)
-        for x in forecast:
-            ciData.append(x)
+        for x in range(0, len(forecast)):
+            ciData.append(forecast[x])
             
             mean, sigma = np.mean(ciData), np.std(ciData)
-            interval = stats.norm.interval(0.997, loc=x, scale=sigma)
-            ciLower.append(interval[0])
-            ciUpper.append(interval[1])
+            interval = stats.norm.interval(0.95, loc=forecast[x], scale=sigma)
+            ciLower.append(interval[0] / (1.004 ** x))
+            ciUpper.append(interval[1] * (1.004 ** x))
 
         allData = dataRow + forecast
         allMean, allSigma = np.mean(allData), np.std(allData)
