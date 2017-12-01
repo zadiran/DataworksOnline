@@ -104,8 +104,8 @@
     
           x.domain(d3.extent(data, function(d) { return new Date(d[0]); }));
     
-          var min = parseFloat(d3.min(data, function(d) { return d[1]; }));
-          var max = parseFloat(d3.max(data, function(d) { return d[1]; }));
+          var min = parseFloat(d3.min(data, function(d) { return parseFloat(d[1]); }));
+          var max = parseFloat(d3.max(data, function(d) { return parseFloat(d[1]); }));
           var addition = (max - min) / 10; 
           y.domain([min - addition, max + addition]);
           x2.domain(x.domain());
@@ -171,6 +171,8 @@
         
                 
         function runProcess() {
+            
+            focus.selectAll('.line').remove();
             var delay = parseFloat($('#delayBetweenAdditions').val(), 10);
 
             svg.select('path.line').remove();
@@ -180,7 +182,7 @@
             var interval = setInterval(function() {
                 // Select the section we want to apply our changes to
                 var svg = d3.select("svg").transition();
-                svg.select('path.line').remove();
+                focus.selectAll('.line').remove();
                 focus.append("path")
                 .datum(data.slice(0, cnt))
                 .attr("class", "line")
