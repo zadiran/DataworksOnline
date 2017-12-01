@@ -55,11 +55,11 @@
     function minimum(array) {
         var minval = array[0];
         array.map(function(v, i, a) {
-            if (!v && v!==0)
+            if (!v && v!=0)
             {
-                return;
+                return minval;
             }
-            if (v < minval) {
+            if (v < minval || (!minval && minval !== 0)) {
                 minval = v; 
             }
         })
@@ -72,7 +72,7 @@
             {
                 return;
             }
-            if (v > maxval) {
+            if (v > maxval || (!maxval && maxval !== 0)) {
                 maxval = v; 
             }
         })
@@ -357,15 +357,9 @@
                  j++;
                  drawStep(k);
              },del);
-            // debugger;
-             //sleep(delay * 1000);
-             }
         }
-        
-    function sleep(ms) {
-        var now = new Date().getTime();
-        while(new Date().getTime() < now + ms){ /* do nothing */ } 
     }
+        
     function getData(id, i) {
         $.ajax({
             method: 'GET',
@@ -374,7 +368,9 @@
             data: { 
                 dataset: id,
                 horizon: $('#forecastHorizon').val(),
-                count: i
+                count: i,
+                forecast_model: $('#forecastModel').find(':selected').val(),
+                outlier_detector: $('#outlierDetection').find(':selected').val()
             },
             url: '{{url_for("get_data")}}',
             success: function(loaded) {
@@ -413,9 +409,10 @@
           x.domain(d3.extent(data, function(d) { return new Date(d.timestamp); }));
           //x.domain(d3.extent(data.slice(j-minlen, data.length), function(d) { return new Date(d.timestamp); }));
     
-          var min = parseFloat(d3.min(data, function(d) { 
-              return minimum([d.confidence_interval_lower,d.real, d.forecast,  d.confidence_interval_upper]); 
-            }));
+          var mins = data.map(function(v,i,a) {
+              return minimum([v.confidence_interval_lower,v.real, v.forecast,  v.confidence_interval_upper]);
+          })
+          var min =  minimum(mins)
           var max = parseFloat(d3.max(data, function(d) { 
               //console.log(d.confidence_interval_lower)
               return maximum([d.real, d.forecast, d.confidence_interval_lower, d.confidence_interval_upper]); 
@@ -491,12 +488,17 @@
         .attr("d", forecast_small);
 
 
-
+        circles_data = []
+        for (var i = 0; i < data.length; i++) { 
+            if (data[i].outlier || data[i].outlier === 0) {
+                circles_data.push(data[i])
+            }
+        }
         circles = svg.append("g")
             .attr("class", "circles")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
             .selectAll("circle")
-            .data(data)
+            .data(circles_data)
             .enter()
             .append("circle")
             .attr('class', 'dot')

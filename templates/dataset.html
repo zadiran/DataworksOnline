@@ -64,7 +64,7 @@
         <a href="{{ url_for('dataset', dsId = model.file.id, pgId = 3)}}" class="left-menu-top-ref">Realtime chart</a>
         <div class="control-panel control-panel-3" style="display: none;">
             <p>
-                <label for="delayBetweenAdditions">Delay between additions</label>
+                <label for="delayBetweenAdditions">Delay between events</label>
                 <input type="number" class="form-control" id="delayBetweenAdditions" />
             </p>
             <a onclick="runProcess();" class="btn btn-primary">Run</a>
@@ -72,12 +72,26 @@
         <a href="{{ url_for('dataset', dsId = model.file.id, pgId = 4)}}" class="left-menu-top-ref">Forecast</a>
         <div class="control-panel control-panel-4" style="display:none">
             <p>
-                <label for="delayBetweenAdditionsForecast">Delay between additions</label>
+                <label for="delayBetweenAdditionsForecast">Delay between events</label>
                 <input type="number" class="form-control" id="delayBetweenAdditionsForecast" />                
+            </p>
+            <p>
+                <label for="forecastModel">Forecast model</label>
+               <select id="forecastModel" class="form-control">
+                   <option value="Naive">Naive</option>
+                   <option value="Average">Average</option>
+                </select> 
             </p>
             <p>
                 <label for="forecastHorizon">Horizon</label>
                 <input type="number" class="form-control" id="forecastHorizon" />                
+            </p>
+            <p>
+                <label for="outlierDetection">Outlier detection method</label>
+                <select id="outlierDetection" class="form-control">
+                    <option value="3sigma">3-sigma</option>
+                    <option value="5sigma">5-sigma</option>
+                </select>
             </p>
             <a onclick="runProcess();" class="btn btn-primary">Run</a>
         </div>

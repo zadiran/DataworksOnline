@@ -244,8 +244,10 @@ def get_data():
 	dataset = request.args.get('dataset', 0, type = int)
 	horizon = request.args.get('horizon', 0, type = int)
 	count = request.args.get('count', 0, type = int)
+	forecast_model = request.args.get('forecast_model', 'Naive', type = str)
+	outlier_detector = request.args.get('outlier_detector', '3sigma', type = str)
 
-	result = forecast.forecast(dataset, 1, horizon, count)
+	result = forecast.forecast(dataset, 1, horizon, count, forecast_model, outlier_detector)
 
 	output = []
 	for x in range (0, len(result['data'])):

@@ -6,7 +6,7 @@ from dateutil import parser
 from scipy import stats
 import numpy as np
 
-def forecast(datasetId, columnNumber, horizon, count):
+def forecast(datasetId, columnNumber, horizon, count, forecast_model, outlier_detector):
     dataset = Dataset.query.get(datasetId)
     if dataset is not None:
         data = du.get_parsed_file(dataset.data, dataset.separator)['data']
@@ -19,7 +19,16 @@ def forecast(datasetId, columnNumber, horizon, count):
 
         dataRow = dataRow[:count]
 
-        forecast = dataRow[-horizon : ]
+        forecast = []
+        if forecast_model == "Naive":
+            forecast = dataRow[-horizon : ]
+        elif forecast_model == "Average":
+            lag = 4
+            for x in range(0, horizon):
+                if (x >= lag):
+                    forecast.append(np.mean(forecast[-lag:]))
+                else:
+                    forecast.append(np.mean(forecast + dataRow[-lag + x:]))
         # for x in range(0, len(forecast)):
         #     forecast[x] = forecast[x] + 3 * x 
         
@@ -44,7 +53,12 @@ def forecast(datasetId, columnNumber, horizon, count):
 
         allData = dataRow + forecast
         allMean, allSigma = np.mean(allData), np.std(allData)
-        outlier = list(map(lambda x: x if abs(x - allMean) > 2 * allSigma else None, allData))
+
+        constraint = 3 * allSigma
+        if outlier_detector == "5sigma":
+            constraint = 5 * allSigma
+
+        outlier = list(map(lambda x: x if abs(x - allMean) > constraint else None, allData))
             
 
         return {
