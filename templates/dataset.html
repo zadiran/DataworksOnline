@@ -78,8 +78,9 @@
             <p>
                 <label for="forecastModel">Forecast model</label>
                <select id="forecastModel" class="form-control">
-                   <option value="Naive">Naive</option>
-                   <option value="Average">Average</option>
+                    {% for forecast_model in model.forecast_models %}
+                    <option value="{{ forecast_model }}">{{ forecast_model }}</option>
+                    {% endfor %}
                 </select> 
             </p>
             <p>
@@ -89,8 +90,9 @@
             <p>
                 <label for="outlierDetection">Outlier detection method</label>
                 <select id="outlierDetection" class="form-control">
-                    <option value="3sigma">3-sigma</option>
-                    <option value="5sigma">5-sigma</option>
+                    {% for detector in model.outlier_detectors %}
+                        <option value="{{detector}}">{{detector}}</option>
+                    {% endfor %}
                 </select>
             </p>
             <a onclick="runProcess();" class="btn btn-primary">Run</a>

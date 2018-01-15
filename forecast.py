@@ -5,13 +5,40 @@ from datetime import datetime
 from dateutil import parser
 from scipy import stats
 import numpy as np
+from analytics.forecasting.naive_forecast_model import naive_forecast_model
+from analytics.forecasting.average_forecast_model import average_forecast_model
+from analytics.outliers_detection.three_sigma_outlier_detector import three_sigma_outlier_detector
+from analytics.outliers_detection.five_sigma_outlier_detector import five_sigma_outlier_detector
 
-def forecast(datasetId, columnNumber, horizon, count, forecast_model, outlier_detector):
-    dataset = Dataset.query.get(datasetId)
+def get_forecast_model_list():
+    models = [
+        naive_forecast_model(),
+        average_forecast_model()
+    ]
+
+    return list(map(lambda x: x.name, models))
+
+def get_outlier_detectors_list():
+    detectors = [
+        three_sigma_outlier_detector(),
+        five_sigma_outlier_detector()
+    ]
+
+    return list(map(lambda x: x.name, detectors))
+
+def produce_forecast(dataset_id, **kwargs):
+
+    column_number = kwargs['column_number']
+    horizon = kwargs['horizon']
+    count = kwargs['count']
+    forecast_model = kwargs['forecast_model']
+    outlier_detector = kwargs['outlier_detector']
+    dataset = Dataset.query.get(dataset_id)
     if dataset is not None:
         data = du.get_parsed_file(dataset.data, dataset.separator)['data']
 
-        dataRow = list(map(lambda x: float(x[columnNumber]), data))
+        dataRow = list(map(lambda x: float(x[column_number]), data))
+        
         dataRowBig = list(dataRow)
         if count == 0: 
             count = int(len(dataRow) * 0.75) - 1
@@ -20,17 +47,21 @@ def forecast(datasetId, columnNumber, horizon, count, forecast_model, outlier_de
         dataRow = dataRow[:count]
 
         forecast = []
-        if forecast_model == "Naive":
-            forecast = dataRow[-horizon : ]
-        elif forecast_model == "Average":
-            lag = 4
-            for x in range(0, horizon):
-                if (x >= lag):
-                    forecast.append(np.mean(forecast[-lag:]))
-                else:
-                    forecast.append(np.mean(forecast + dataRow[-lag + x:]))
-        # for x in range(0, len(forecast)):
-        #     forecast[x] = forecast[x] + 3 * x 
+        if forecast_model == naive_forecast_model().name:
+            forecast = naive_forecast_model().forecast(
+                data, 
+                horizon = horizon, 
+                column_index = column_number,
+                count = count
+            )
+        elif forecast_model == average_forecast_model().name:
+            forecast = average_forecast_model().forecast(
+                data,
+                horizon = horizon, 
+                column_index = column_number,
+                lag = 4,
+                count = count
+            )
         
         timestamps = list(map(lambda x: parser.parse(x[0]), data))
         timestep =  timestamps[1] - timestamps[0]
@@ -52,14 +83,11 @@ def forecast(datasetId, columnNumber, horizon, count, forecast_model, outlier_de
             ciUpper.append(interval[1] * (1.004 ** x))
 
         allData = dataRow + forecast
-        allMean, allSigma = np.mean(allData), np.std(allData)
-
-        constraint = 3 * allSigma
-        if outlier_detector == "5sigma":
-            constraint = 5 * allSigma
-
-        outlier = list(map(lambda x: x if abs(x - allMean) > constraint else None, allData))
-            
+        outlier = []
+        if outlier_detector == three_sigma_outlier_detector().name:
+            outlier = three_sigma_outlier_detector().detect(allData)
+        elif outlier_detector == five_sigma_outlier_detector().name:
+            outlier = five_sigma_outlier_detector().detect(allData)            
 
         return {
             'timestamp': timestamps,
@@ -70,8 +98,8 @@ def forecast(datasetId, columnNumber, horizon, count, forecast_model, outlier_de
             'confidence_interval_lower': ciLower,
             'outlier': outlier,
             'data_count': count + 1,
-            'stop_condition': max_length <= count ,
-            'all_data' :dataRowBig
+            'stop_condition': max_length <= count,
+            'total_count' : len(data) + horizon
         }
     else:
         return { 'error': 'Dataset not found.'}

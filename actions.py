@@ -10,7 +10,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from forms import FileUploadForm, LoginForm, RegistrationForm
 from datautil import get_parsed_file
-import forecast
+from forecast import produce_forecast, get_forecast_model_list, get_outlier_detectors_list
 
 @app.before_request
 def before_request():
@@ -87,7 +87,9 @@ def dataset(dsId, pgId):
 		'title' : 'Dataset',
 		'dataset' :  pf,
 		'file' : ds ,
-		'page' : pgId
+		'page' : pgId,
+		'forecast_models': get_forecast_model_list(),
+		'outlier_detectors': get_outlier_detectors_list()
 	}
 	return render_template('dataset' + str(pgId) + '.html', model = model)
 
@@ -245,9 +247,15 @@ def get_data():
 	horizon = request.args.get('horizon', 0, type = int)
 	count = request.args.get('count', 0, type = int)
 	forecast_model = request.args.get('forecast_model', 'Naive', type = str)
-	outlier_detector = request.args.get('outlier_detector', '3sigma', type = str)
+	outlier_detector = request.args.get('outlier_detector', '3-sigma', type = str)
 
-	result = forecast.forecast(dataset, 1, horizon, count, forecast_model, outlier_detector)
+	result = produce_forecast(
+				dataset,
+				column_number = 1, 
+				horizon = horizon, 
+				count = count, 
+				forecast_model = forecast_model, 
+				outlier_detector = outlier_detector)
 
 	output = []
 	for x in range (0, len(result['data'])):
@@ -276,5 +284,9 @@ def get_data():
 			'outlier': result['outlier'][len(result['data']) + x] ,
 			'data_count': result['data_count'],
 			'stop_condition': result['stop_condition']
+		})
+	for x in range(len(result['data']) + len(result['forecast']), result['total_count']):
+		output.append({
+			'timestamp': result['timestamp'][x]
 		})
 	return jsonify(output)
