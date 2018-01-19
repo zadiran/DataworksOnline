@@ -243,7 +243,12 @@ def no_access():
 
 @app.route('/clear_temp_data', methods = ['GET'])
 def clear_temp_data():
-	pass
+	for key in list(session.keys()):
+		if key.startswith('produce_forecast__data_'):
+			session.pop(key)
+			session.modified = True
+
+	return '{"success": True}'
 
 @app.route('/get_data', methods = ['GET'])
 def get_data():
@@ -253,10 +258,8 @@ def get_data():
 	forecast_model = request.args.get('forecast_model', 'Naive', type = str)
 	outlier_detector = request.args.get('outlier_detector', '3-sigma', type = str)
 
-	#print(session['produce_forecast__data_' + str(dataset_id)])
 	try:
 		data = session['produce_forecast__data_' + str(dataset_id)]
-		print('Hit!!!\n\n')
 	except KeyError:
 		dataset = Dataset.query.get(dataset_id)
 		data = get_parsed_file(dataset.data, dataset.separator)

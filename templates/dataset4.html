@@ -358,6 +358,7 @@
                  drawStep(k);
              },del);
         }
+        finish();
     }
         
     function getData(id, i) {
@@ -387,6 +388,13 @@
     function drawStep(j) {
         getData('{{ model.file.id }}', j);
         doRoutine(j);
+    }
+
+    function finish() {
+        $.ajax({
+            method: 'GET',
+            url: '{{ url_for("clear_temp_data")}}'
+        }) 
     }
 
     function doRoutine(j) {
