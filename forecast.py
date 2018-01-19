@@ -88,11 +88,9 @@ def produce_forecast(data, **kwargs):
         'horizon': horizon,
         'data': dataRow, 
         'forecast': forecast if horizon > 0 else [],
-        'confidence_interval_upper': ciUpper,
-        'confidence_interval_lower': ciLower,
+        'ci_u': ciUpper,
+        'ci_l': ciLower,
         'outlier': outlier,
-        'data_count': count + 1,
-        'stop_condition': max_length <= count,
         'total_count' : len(data['data']) + horizon
     }
 

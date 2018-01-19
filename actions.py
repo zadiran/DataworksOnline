@@ -280,27 +280,23 @@ def get_data():
 			'timestamp': result['timestamp'][x],
 			'real': result['data'][x],
 			'forecast': None, 
-			'confidence_interval_upper': None,
-			'confidence_interval_lower': None,
+			'ci_u': None,
+			'ci_l': None,
 			'outlier': result['outlier'][x],
-			'data_count': result['data_count'],
-			'stop_condition': result['stop_condition']
 		})
 
 	output[-1]['forecast'] = output[-1]['real']
-	output[-1]['confidence_interval_upper'] = output[-1]['real']
-	output[-1]['confidence_interval_lower'] = output[-1]['real']
+	output[-1]['ci_u'] = output[-1]['real']
+	output[-1]['ci_l'] = output[-1]['real']
 
 	for x in range(0, len(result['forecast'])):
 		output.append({
 			'timestamp': result['timestamp'][len(result['data']) + x],
 			'real': None,
 			'forecast': result['forecast'][x],
-			'confidence_interval_upper': result['confidence_interval_upper'][x],
-			'confidence_interval_lower': result['confidence_interval_lower'][x],
+			'ci_u': result['ci_u'][x],
+			'ci_l': result['ci_l'][x],
 			'outlier': result['outlier'][len(result['data']) + x] ,
-			'data_count': result['data_count'],
-			'stop_condition': result['stop_condition']
 		})
 	for x in range(len(result['data']) + len(result['forecast']), result['total_count']):
 		output.append({
