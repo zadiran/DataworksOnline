@@ -274,9 +274,9 @@ def get_data():
 				forecast_model = forecast_model, 
 				outlier_detector = outlier_detector)
 
-	output = []
+	items = []
 	for x in range (0, len(result['data'])):
-		output.append({
+		items.append({
 			'timestamp': result['timestamp'][x],
 			'real': result['data'][x],
 			'forecast': None, 
@@ -285,12 +285,12 @@ def get_data():
 			'outlier': result['outlier'][x],
 		})
 
-	output[-1]['forecast'] = output[-1]['real']
-	output[-1]['ci_u'] = output[-1]['real']
-	output[-1]['ci_l'] = output[-1]['real']
+	items[-1]['forecast'] = items[-1]['real']
+	items[-1]['ci_u'] = items[-1]['real']
+	items[-1]['ci_l'] = items[-1]['real']
 
 	for x in range(0, len(result['forecast'])):
-		output.append({
+		items.append({
 			'timestamp': result['timestamp'][len(result['data']) + x],
 			'real': None,
 			'forecast': result['forecast'][x],
@@ -298,8 +298,7 @@ def get_data():
 			'ci_l': result['ci_l'][x],
 			'outlier': result['outlier'][len(result['data']) + x] ,
 		})
-	for x in range(len(result['data']) + len(result['forecast']), result['total_count']):
-		output.append({
-			'timestamp': result['timestamp'][x]
-		})
-	return jsonify(output)
+	items.append({
+		'timestamp': result['timestamp'][-1]
+	})
+	return jsonify(items)
