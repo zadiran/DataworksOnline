@@ -2,9 +2,9 @@ import os
 import uuid
 
 class Config():
-	CSRF_ENABLED = True
-	SECRET_KEY = str(uuid.uuid4())
-
+	
+	def __init__(self):
+		pass
 
 def configure_app(app):
 	config = Config()
@@ -18,5 +18,8 @@ def configure_app(app):
 		config.SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URI']
 	
 	app.config.from_object(config)
+	app.secret_key = str(uuid.uuid4())
+	app.config['CSRF_ENABLED'] = True
+	app.config['SESSION_TYPE'] = 'filesystem'
 	app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 	app.config['BASEDIR'] = os.path.abspath(os.path.dirname(__file__))

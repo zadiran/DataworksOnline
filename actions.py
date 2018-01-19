@@ -80,7 +80,7 @@ def dataset(dsId, pgId):
 	if ds.distinctive_name is None:
 		ds.distinctive_name = ds.filename
 		
-	pf = get_parsed_file(ds.data, ds.separator);
+	pf = get_parsed_file(ds.data, ds.separator)
 	pf['minlen'] = int(len(pf['data']) / 2)
 	pf['maxlen'] = len(pf['data'])
 	model = {
@@ -241,16 +241,30 @@ def no_access():
 	return render_template('no_access.html', model = model)
 
 
+@app.route('/clear_temp_data', methods = ['GET'])
+def clear_temp_data():
+	pass
+
 @app.route('/get_data', methods = ['GET'])
 def get_data():
-	dataset = request.args.get('dataset', 0, type = int)
+	dataset_id = request.args.get('dataset', 0, type = int)
 	horizon = request.args.get('horizon', 0, type = int)
 	count = request.args.get('count', 0, type = int)
 	forecast_model = request.args.get('forecast_model', 'Naive', type = str)
 	outlier_detector = request.args.get('outlier_detector', '3-sigma', type = str)
 
+	#print(session['produce_forecast__data_' + str(dataset_id)])
+	try:
+		data = session['produce_forecast__data_' + str(dataset_id)]
+		print('Hit!!!\n\n')
+	except KeyError:
+		dataset = Dataset.query.get(dataset_id)
+		data = get_parsed_file(dataset.data, dataset.separator)
+		session['produce_forecast__data_' + str(dataset_id)] = data
+		session.modified= True
+
 	result = produce_forecast(
-				dataset,
+				data,
 				column_number = 1, 
 				horizon = horizon, 
 				count = count, 
