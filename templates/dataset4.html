@@ -17,6 +17,14 @@
           stroke-width: 2px;
           clip-path: url(#clip);
         }
+
+        .line-old-forecast {
+          fill: none;
+          stroke: orangered;
+          stroke-width: 2px;
+          clip-path: url(#clip);
+
+        }
         
         .line-confidence-lower {
           fill: none;
@@ -103,7 +111,7 @@
         var focus
         var brush 
         var data
-        var data_count = null;
+        var saved_forecast = []
         var zoom
 
         var real_big, real_small
@@ -267,6 +275,7 @@
                 x.domain(s.map(x2.invert, x2));
                 focus.select(".line").attr("d", real_big);
                 focus.select(".line-forecast").attr("d", forecast_big);
+                focus.select(".line-old-forecast").attr("d", forecast_big);
                 focus.select(".line-confidence-lower").attr("d", confidence_lower_big);
                 focus.select(".line-confidence-upper").attr("d", confidence_upper_big);
                 focus.select('.line-outlier').attr('d', outlier_big);
@@ -289,6 +298,7 @@
 
                 focus.select(".line").attr("d", real_big);
                 focus.select(".line-forecast").attr("d", forecast_big);
+                focus.select(".line-old-forecast").attr("d", forecast_big);
                 focus.select(".line-confidence-lower").attr("d", confidence_lower_big);
                 focus.select(".line-confidence-upper").attr("d", confidence_upper_big);
                 focus.select('.confidence-area').attr('d', confidence_area_big)
@@ -305,14 +315,19 @@
                 
         function runProcess() {
             
+            saved_forecast = []
+            
             focus.selectAll('.line').remove();
             focus.selectAll('.line-forecast').remove();
+            focus.selectAll('.line-old-forecast').remove();
             focus.selectAll('.line-confidence-lower').remove();
             focus.selectAll('.line-confidence-upper').remove();
             focus.selectAll('circle').remove();
+            focus.selectAll('.line-old-forecast').remove();
 
             context.selectAll('.line').remove();
             context.selectAll('.line-forecast').remove();
+            context.selectAll('.line-old-forecast').remove();
             context.selectAll('.line-confidence-lower').remove();
             context.selectAll('.line-confidence-upper').remove();
             context.selectAll('.line-outlier').remove();
@@ -387,6 +402,11 @@
     var hard_stop;
     function drawStep(j) {
         getData('{{ model.file.id }}', j);
+        var k = 0;
+        while (!data[k].forecast) {
+            k = k + 1;
+        }
+        saved_forecast.push(data[k + 1]);
         doRoutine(j);
     }
 
@@ -400,12 +420,14 @@
     function doRoutine(j) {
         focus.selectAll('.line').remove();
             focus.selectAll('.line-forecast').remove();
+            focus.selectAll('.line-old-forecast').remove();
             focus.selectAll('.line-confidence-lower').remove();
             focus.selectAll('.line-confidence-upper').remove();
             focus.selectAll('circle').remove();
 
             context.selectAll('.line').remove();
             context.selectAll('.line-forecast').remove();
+            context.selectAll('.line-old-forecast').remove();
             context.selectAll('.line-confidence-lower').remove();
             context.selectAll('.line-confidence-upper').remove();
             context.selectAll('.line-outlier').remove();
@@ -440,6 +462,7 @@
         // Select the section we want to apply our changes to
         focus.selectAll('.line').remove();
         focus.selectAll('.line-forecast').remove();
+        focus.selectAll('.line-old-forecast').remove();
         focus.selectAll('.line-confidence-lower').remove();
         focus.selectAll('.line-confidence-upper').remove();
         focus.selectAll('.confidence-area').remove();
@@ -447,6 +470,7 @@
         
         context.selectAll('.line').remove();
         context.selectAll('.line-forecast').remove();
+        context.selectAll('.line-old-forecast').remove();
         context.selectAll('.line-confidence-lower').remove();
         context.selectAll('.line-confidence-upper').remove();
 
@@ -490,11 +514,20 @@
         .attr("class", "line-forecast")
         .attr("d", forecast_big);
 
+        focus.append('path')
+        .datum(saved_forecast)
+        .attr('class', 'line-old-forecast')
+        .attr('d', forecast_big);
+
         context.append("path")
         .datum(data)
         .attr("class", "line-forecast")
         .attr("d", forecast_small);
 
+        context.append("path")
+        .datum(saved_forecast)
+        .attr("class", "line-old-forecast")
+        .attr("d", forecast_small);
 
         circles_data = []
         for (var i = 0; i < data.length; i++) { 
