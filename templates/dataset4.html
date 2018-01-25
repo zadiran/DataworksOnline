@@ -123,6 +123,8 @@
         
         var circles
 
+        var routines = []
+
         $(function () 
         {
             $('#delayBetweenAdditionsForecast').val(1)
@@ -312,9 +314,16 @@
 
         });
         
+        function stopAllRoutines() {
+            routines.map(function(v, i, a) {
+                clearTimeout(v);
+            })
+            routines = []
+        }
                 
         function runProcess() {
             
+            stopAllRoutines();
             saved_forecast = []
             
             focus.selectAll('.line').remove();
@@ -367,11 +376,12 @@
         var j = minlen;
         for (var i = minlen; i <= maxlen; i++)  {
                  var del =( i - minlen) * delay * 1000;
-             setTimeout(function() {
+             var timeout = setTimeout(function() {
                  var k = parseInt(j);
                  j++;
                  drawStep(k);
              },del);
+             routines.push(timeout)
         }
         finish();
     }
@@ -395,6 +405,7 @@
              //   console.log(loaded);
             },
             error: function() {
+                stopAllRoutines();
                 alert('Error happened while data from server was retrieved. Please try to reload page in a while')
             }
         })
