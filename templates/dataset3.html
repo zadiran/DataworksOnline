@@ -173,6 +173,7 @@
         function runProcess() {
             
             focus.selectAll('.line').remove();
+            context.selectAll('.line').remove();
             var delay = parseFloat($('#delayBetweenAdditions').val(), 10);
 
             svg.select('path.line').remove();
@@ -183,6 +184,7 @@
                 // Select the section we want to apply our changes to
                 var svg = d3.select("svg").transition();
                 focus.selectAll('.line').remove();
+                context.selectAll('.line').remove();
                 focus.append("path")
                 .datum(data.slice(0, cnt))
                 .attr("class", "line")
