@@ -121,7 +121,7 @@
         var outlier_big, outlier_small
         var confidence_area_big, confidence_area_small
         
-        var circles
+        var circles, circles_small
 
         var routines = []
 
@@ -203,6 +203,12 @@
             .y0(function(d) { return y(d.ci_u); })
             .y1(function(d) { return y(d.ci_l); });
 
+        confidence_area_small = d3.area()
+        .defined(function(d) {return !!d.ci_l && !!d.ci_u;})
+        .x(function(d) { return x2(new Date(d.timestamp)); })
+        .y0(function(d) { return y2(d.ci_u); })
+        .y1(function(d) { return y2(d.ci_l); });
+
         outlier_big = d3.line()
             .defined(function(d) { return !!d.outlier })
             .x(function(d) { return x(new Date(d.timestamp)) })
@@ -215,7 +221,7 @@
 
          brush = d3.brushX()
             .extent([[0, 0], [width, height2]])
-            //.on("brush end", brushed); todo fix dots scale on change and return
+            .on("brush end", brushed); 
         
          zoom = d3.zoom()
             .scaleExtent([1, Infinity])
@@ -273,6 +279,7 @@
     
             function brushed() {
                 if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+                
                 var s = d3.event.selection || x2.range();
                 x.domain(s.map(x2.invert, x2));
                 focus.select(".line").attr("d", real_big);
@@ -280,18 +287,20 @@
                 focus.select(".line-old-forecast").attr("d", forecast_big);
                 focus.select(".line-confidence-lower").attr("d", confidence_lower_big);
                 focus.select(".line-confidence-upper").attr("d", confidence_upper_big);
-                focus.select('.line-outlier').attr('d', outlier_big);
+                focus.select('.confidence-area').attr('d', confidence_area_big);
+                //focus.select('.line-outlier').attr('d', outlier_big);
                 // focus.selectAll("dot")
                 // .attr("transform", transform);
 
-                var new_yScale = d3.event.transform.rescaleX(x2);
-                circles.attr("cx", function(d) { return new_yScale(new Date(d.timestamp)); });
+                focus.selectAll(".dot")
+                .attr("cx", function(d) { return x(new Date(d.timestamp)); })
+                .attr("cy", function(d) { return y(d.outlier); });
 
                 focus.select(".axis--x").call(xAxis);
-                svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
-                    .scale(width / (s[1] - s[0]))
-                    .translate(-s[0], 0));
-            }
+                //     svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
+                //         .scale(width / (s[1] - s[0]))
+                //         .translate(-s[0], 0));
+             }
             
             function zoomed() {
                 if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
@@ -434,6 +443,7 @@
             focus.selectAll('.line-old-forecast').remove();
             focus.selectAll('.line-confidence-lower').remove();
             focus.selectAll('.line-confidence-upper').remove();
+            focus.selectAll('.confidence-area').remove();
             focus.selectAll('circle').remove();
 
             context.selectAll('.line').remove();
@@ -441,6 +451,7 @@
             context.selectAll('.line-old-forecast').remove();
             context.selectAll('.line-confidence-lower').remove();
             context.selectAll('.line-confidence-upper').remove();
+            context.selectAll('.confidence-area').remove();
             context.selectAll('.line-outlier').remove();
 
             //var delay = parseFloat($('#delayBetweenAdditionsForecast').val(), 10);
@@ -484,6 +495,7 @@
         context.selectAll('.line-old-forecast').remove();
         context.selectAll('.line-confidence-lower').remove();
         context.selectAll('.line-confidence-upper').remove();
+        context.selectAll('.confidence-area').remove();
 
         focus.append('path')
         .datum(data)
@@ -514,6 +526,11 @@
         .datum(data)
         .attr('class', 'confidence-area')
         .attr('d', confidence_area_big)
+
+        context.append('path')
+        .datum(data)
+        .attr('class', 'confidence-area')
+        .attr('d', confidence_area_small)
         
         focus.append("path")
         .datum(data)
@@ -526,7 +543,7 @@
         .attr("d", forecast_big);
 
         focus.append('path')
-        .datum(saved_forecast)
+        .datum(saved_forecast.slice(0, saved_forecast.length - 1))
         .attr('class', 'line-old-forecast')
         .attr('d', forecast_big);
 
@@ -536,7 +553,7 @@
         .attr("d", forecast_small);
 
         context.append("path")
-        .datum(saved_forecast)
+        .datum(saved_forecast.slice(0, saved_forecast.length - 1))
         .attr("class", "line-old-forecast")
         .attr("d", forecast_small);
 
@@ -546,9 +563,9 @@
                 circles_data.push(data[i])
             }
         }
-        circles = svg.append("g")
+        circles = focus.append("g")
             .attr("class", "circles")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+            //.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
             .selectAll("circle")
             .data(circles_data)
             .enter()
@@ -557,6 +574,18 @@
             .attr("r", 6)
             .attr("cx", function(d) { return x(new Date(d.timestamp)); })
             .attr("cy", function(d) { return y(d.outlier); });
+        
+            circles_small = context.append("g")
+            .attr("class", "circles")
+            //.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+            .selectAll("circle")
+            .data(circles_data)
+            .enter()
+            .append("circle")
+            .attr('class', 'dot')
+            .attr("r", 3)
+            .attr("cx", function(d) { return x2(new Date(d.timestamp)); })
+            .attr("cy", function(d) { return y2(d.outlier); });
     }
 </script>
 <div style="padding:15px;">
